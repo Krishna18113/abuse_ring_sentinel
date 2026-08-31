@@ -1,0 +1,18 @@
+{
+  "headline": "High-Risk Coordinated Activity Detected",
+  "summary": "AI explanation unavailable. Risk probability: 99.06%. Review required: Yes.",
+  "key_signals": [
+    "Shared Device - HIGH Strength",
+    "Coupon Coordination - HIGH Strength",
+    "Temporal Coordination - HIGH Strength"
+  ],
+  "observed_evidence": [
+    "Device D32830 is shared by 9 customers.",
+    "Found 9 customers connected via multiple independent signals.",
+    "Transactions occur within a 60s window (3 customers, 9 txs).",
+    "Transactions occur within a 300s window (3 customers, 9 txs).",
+    "Transactions occur within a 900s window (3 customers, 9 txs)."
+  ],
+  "recommended_action": "Review the connected accounts and transaction activity.",
+  "uncertainty": "These signals indicate coordinated activity but do not independently establish fraudulent intent."
+}

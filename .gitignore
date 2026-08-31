@@ -44,3 +44,8 @@ neo4j_logs/
 
 # Generated synthetic datasets (deterministic, easily regenerated)
 backend/data/generated/
+
+# Environment configurations containing credentials
+.env
+.env.*
+

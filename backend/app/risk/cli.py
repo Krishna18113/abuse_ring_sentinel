@@ -4,9 +4,14 @@ import argparse
 import random
 import pandas as pd
 import numpy as np
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from app.ml.utils import DATA_DIR
 from app.risk.investigator import investigate_customer
+from app.ai.service import explain_risk
 
 def print_report(pkg: dict):
     """Outputs a clean, human-readable terminal report matching the requested style."""
@@ -99,6 +104,25 @@ def print_report(pkg: dict):
     else:
         print("  None")
         
+    # AI Explanation Section
+    explanation = pkg.get("explanation")
+    if explanation:
+        print("\n" + "-" * 40)
+        print("AI EXPLANATION")
+        print("-" * 40)
+        print(f"Headline: {explanation['headline']}")
+        print(f"\nSummary:\n{explanation['summary']}")
+        print("\nKey Signals:")
+        for sig in explanation["key_signals"]:
+            print(f"  • {sig}")
+        print("\nObserved Evidence:")
+        for ev in explanation["observed_evidence"]:
+            print(f"  • {ev}")
+        print("\nRecommended Action:")
+        print(f"  {explanation['recommended_action']}")
+        print("\nNote:")
+        print(f"  {explanation['uncertainty']}")
+        
     print("\n" + "=" * 40)
     print(f"Evidence Signals Detected: {summary['signal_count']}")
     print(f"Connected Customers:      {summary['connected_customer_count']}")
@@ -168,12 +192,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Investigation CLI & Evidence Engine.")
     parser.add_argument("--customer-id", type=str, help="Customer ID to investigate")
     parser.add_argument("--benchmark", action="store_true", help="Run latency benchmark on 20 random customers")
+    parser.add_argument("--explain", action="store_true", help="Generate AI-powered explanation using Gemini")
     args = parser.parse_args()
     
     if args.benchmark:
         run_benchmarks()
     elif args.customer_id:
         pkg = investigate_customer(args.customer_id)
+        if args.explain:
+            print("Generating AI Explanation...")
+            t_ai = time.time()
+            explanation = explain_risk(pkg)
+            latency_ai = (time.time() - t_ai) * 1000.0
+            print(f"AI Explanation generated in {latency_ai:.2f} ms")
+            pkg["explanation"] = explanation
         print_report(pkg)
     else:
         parser.print_help()

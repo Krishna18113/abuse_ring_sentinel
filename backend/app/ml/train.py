@@ -5,6 +5,10 @@ import joblib
 import pandas as pd
 import numpy as np
 import torch
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from app.ml.utils import (
     seed_everything,

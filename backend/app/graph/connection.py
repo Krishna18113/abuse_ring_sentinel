@@ -1,5 +1,9 @@
 import os
+from dotenv import load_dotenv
 from neo4j import GraphDatabase
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Credentials loaded from env variables with standard local docker fallbacks
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
