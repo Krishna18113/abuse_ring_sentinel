@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:community
+    container_name: abuse_ring_sentinel_neo4j
+    ports:
+      - "7474:7474" # HTTP Console
+      - "7687:7687" # Bolt protocol
+    environment:
+      # Set initial password to testpassword123
+      - NEO4J_AUTH=neo4j/testpassword123
+      # Enable APOC plugin for graph algorithms/utilities if needed
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_logs:/logs
+
+volumes:
+  neo4j_data:
+  neo4j_import:
+  neo4j_logs:
