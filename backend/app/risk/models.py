@@ -4,6 +4,8 @@ from typing import List, Dict, Any, Optional
 # --- Sub-models for behavioral features ---
 class CustomerInfo(BaseModel):
     customer_id: str
+    account_created_at: Optional[str] = "Active"
+    account_age_days: Optional[float] = 120.0
 
 class RiskInfo(BaseModel):
     risk_probability: float
@@ -12,8 +14,15 @@ class RiskInfo(BaseModel):
 
 class BehaviorInfo(BaseModel):
     transaction_count: int
+    total_transaction_amount: Optional[float] = 0.0
+    average_transaction_amount: Optional[float] = 0.0
+    median_transaction_amount: Optional[float] = 0.0
     coupon_usage_count: int
+    unique_coupons_used: Optional[int] = 0
     referrals_made: int
+    was_referred: Optional[bool] = False
+    active_days: Optional[int] = 1
+    night_transaction_ratio: Optional[float] = 0.0
 
 # --- Sub-models for signals ---
 class SharedDeviceDetail(BaseModel):

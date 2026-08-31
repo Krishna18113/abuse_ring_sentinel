@@ -129,13 +129,16 @@ def query_temporal_coordination(customer_id: str):
     return run_query(query, {"customer_id": customer_id})
 
 def query_basic_behavior(customer_id: str):
-    """Query basic behavior counts (transactions, coupon uses, referrals made) from Neo4j."""
+    """Query basic behavior metrics (transactions, amounts, coupons, referrals, created_at) from Neo4j."""
     query = """
     MATCH (c:Customer {customer_id: $customer_id})
     OPTIONAL MATCH (c)-[:MADE]->(t:Transaction)
     OPTIONAL MATCH (c)-[:USED_COUPON]->(co:Coupon)
     OPTIONAL MATCH (c)-[:REFERRED]->(referred:Customer)
-    RETURN count(distinct t) AS transaction_count,
+    RETURN c.account_created_at AS account_created_at,
+           count(distinct t) AS transaction_count,
+           coalesce(sum(t.amount), 0.0) AS total_amount,
+           coalesce(avg(t.amount), 0.0) AS avg_amount,
            count(distinct co) AS coupon_usage_count,
            count(distinct referred) AS referrals_made
     """
@@ -143,7 +146,10 @@ def query_basic_behavior(customer_id: str):
     if res:
         return res[0]
     return {
+        "account_created_at": "Active",
         "transaction_count": 0,
+        "total_amount": 0.0,
+        "avg_amount": 0.0,
         "coupon_usage_count": 0,
         "referrals_made": 0
     }

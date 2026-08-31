@@ -31,24 +31,28 @@ def sanitize_evidence_package(pkg: dict) -> dict:
     return _sanitize(sanitized)
 
 def get_all_numbers_from_text(text: str) -> Set[int]:
-    """Finds all integers in the text string."""
-    return {int(n) for n in re.findall(r"\b\d+\b", text)}
+    """Finds all integers in the text string, stripping comma separators (e.g. 3,733 -> 3733)."""
+    cleaned = re.sub(r"(\d),(\d)", r"\1\2", text)
+    return {int(n) for n in re.findall(r"\b\d+\b", cleaned)}
 
 def get_all_numbers_from_dict(d: Any) -> Set[int]:
-    """Recursively extracts all integers from the evidence package dictionary values."""
-    nums = set()
-    if isinstance(d, dict):
-        for k, v in d.items():
-            nums.update(get_all_numbers_from_dict(v))
-    elif isinstance(d, list):
-        for item in d:
-            nums.update(get_all_numbers_from_dict(item))
-    elif isinstance(d, (int, float)):
-        # Try to cast to int if it's a whole number
+    """Extracts all numbers appearing anywhere in the serialized evidence package."""
+    text = json.dumps(d)
+    nums = {int(n) for n in re.findall(r"\b\d+\b", text)}
+    
+    # Also extract float percentages (e.g. 0.9906 -> 99, 99.06 -> 99, 100)
+    for match in re.findall(r"\b\d+\.\d+\b", text):
         try:
-            nums.add(int(d))
-        except (ValueError, TypeError):
+            val = float(match)
+            if val <= 1.0:
+                pct = val * 100
+                nums.add(int(pct))
+                nums.add(int(round(pct)))
+            nums.add(int(val))
+            nums.add(int(round(val)))
+        except Exception:
             pass
+            
     return nums
 
 def verify_explanation_claims(explanation: dict, evidence: dict) -> bool:

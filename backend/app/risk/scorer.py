@@ -33,32 +33,38 @@ class RiskScorer:
         # Load scaler
         self.scaler = joblib.load(scaler_path)
         
-        # 2. Build the G_test snapshot graph
-        # For evaluation/production, we evaluate customers up to the latest date
-        test_cutoff = "2025-12-31 23:59:59"
-        test_data, _, _ = build_heterodata_snapshot(
-            self.data_dir, test_cutoff, "test", scaler=self.scaler
-        )
-        
-        # 3. Instantiate GNN and load weights
-        metadata = test_data.metadata()
-        self.model = HeteroGraphSAGE(
-            metadata=metadata,
-            hidden_channels=self.hidden_dim,
-            out_channels=2,
-            dropout=self.dropout
-        )
-        self.model.load_state_dict(torch.load(model_path))
-        self.model.eval()
-        
-        # 4. Precompute GNN predictions to guarantee sub-millisecond scoring lookups
-        with torch.no_grad():
-            logits, _ = self.model(test_data.x_dict, test_data.edge_index_dict)
-            probs = torch.softmax(logits, dim=-1)[:, 1].numpy()
+        # Check if pre-cached probabilities exist
+        cached_probs_path = os.path.join(self.artifacts_dir, "customer_probabilities.joblib")
+        if os.path.exists(cached_probs_path):
+            self.predictions = joblib.load(cached_probs_path)
+        else:
+            # 2. Build the G_test snapshot graph
+            # For evaluation/production, we evaluate customers up to the latest date
+            test_cutoff = "2025-12-31 23:59:59"
+            test_data, _, _ = build_heterodata_snapshot(
+                self.data_dir, test_cutoff, "test", scaler=self.scaler
+            )
             
-        self.predictions = {}
-        for c_id, prob in zip(test_data["customer"].customer_ids, probs):
-            self.predictions[c_id] = float(prob)
+            # 3. Instantiate GNN and load weights
+            metadata = test_data.metadata()
+            self.model = HeteroGraphSAGE(
+                metadata=metadata,
+                hidden_channels=self.hidden_dim,
+                out_channels=2,
+                dropout=self.dropout
+            )
+            self.model.load_state_dict(torch.load(model_path))
+            self.model.eval()
+            
+            # 4. Precompute GNN predictions to guarantee sub-millisecond scoring lookups
+            with torch.no_grad():
+                logits, _ = self.model(test_data.x_dict, test_data.edge_index_dict)
+                probs = torch.softmax(logits, dim=-1)[:, 1].numpy()
+                
+            self.predictions = {}
+            for c_id, prob in zip(test_data["customer"].customer_ids, probs):
+                self.predictions[c_id] = float(prob)
+            joblib.dump(self.predictions, cached_probs_path)
             
         # 5. Presentation-only risk level boundaries (configurable)
         # Separate from the 0.60 GBDT/GNN decision boundary

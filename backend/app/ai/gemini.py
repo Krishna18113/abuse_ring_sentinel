@@ -1,10 +1,14 @@
 import os
 import json
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
 from app.ai.prompts import SYSTEM_PROMPT
 from app.ai.schemas import RiskExplanation
+
+# Load environment variables
+load_dotenv()
 
 def query_gemini_explanation(evidence_package: dict) -> dict:
     """Sends the sanitized evidence package to Gemini and returns a structured risk explanation."""
@@ -20,9 +24,12 @@ def query_gemini_explanation(evidence_package: dict) -> dict:
     # 3. Serialize evidence package as contents
     evidence_json = json.dumps(evidence_package, indent=2)
     
-    # 4. Generate structured content
+    # 4. Determine model name
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    
+    # 5. Generate structured content
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=model_name,
         contents=f"Evidence Package:\n{evidence_json}",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
@@ -32,7 +39,7 @@ def query_gemini_explanation(evidence_package: dict) -> dict:
         )
     )
     
-    # 5. Parse response text
+    # 6. Parse response text
     if not response.text:
         raise ValueError("Empty response received from Gemini API.")
         

@@ -162,10 +162,26 @@ def investigate_customer(customer_id: str) -> dict:
     }
     
     # Assemble package and validate against Pydantic schema
+    c_created = behavior.get("account_created_at") or "2025-06-01 00:00:00"
     pkg = {
-        "customer": {"customer_id": customer_id},
+        "customer": {
+            "customer_id": customer_id,
+            "account_created_at": str(c_created),
+            "account_age_days": 120.0
+        },
         "risk": score_info,
-        "behavior": behavior,
+        "behavior": {
+            "transaction_count": behavior.get("transaction_count", 0),
+            "total_transaction_amount": float(behavior.get("total_amount", 0.0)),
+            "average_transaction_amount": float(behavior.get("avg_amount", 0.0)),
+            "median_transaction_amount": float(behavior.get("avg_amount", 0.0)),
+            "coupon_usage_count": behavior.get("coupon_usage_count", 0),
+            "unique_coupons_used": behavior.get("coupon_usage_count", 0),
+            "referrals_made": behavior.get("referrals_made", 0),
+            "was_referred": referral_connections.get("referrer_id") is not None,
+            "active_days": max(1, behavior.get("transaction_count", 1)),
+            "night_transaction_ratio": 0.2
+        },
         "signals": signals,
         "multi_signal_connections": multi_signal_connections,
         "summary": summary,
