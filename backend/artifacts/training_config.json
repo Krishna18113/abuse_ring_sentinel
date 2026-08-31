@@ -1,0 +1,11 @@
+{
+    "random_seed": 42,
+    "epochs": 50,
+    "learning_rate": 0.005,
+    "hidden_dim": 64,
+    "dropout": 0.3,
+    "baseline_threshold": 0.2,
+    "gnn_threshold": 0.6,
+    "fp_cost": 1000.0,
+    "fn_cost": 10000.0
+}

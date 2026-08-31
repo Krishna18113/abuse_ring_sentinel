@@ -152,3 +152,32 @@ WHERE c1.customer_id < c2.customer_id
   AND abs(duration.inSeconds(datetime(replace(t1.timestamp, ' ', 'T')), datetime(replace(t2.timestamp, ' ', 'T'))).seconds) <= 60
 RETURN c1.customer_id, c2.customer_id, t1.timestamp, t2.timestamp
 ```
+
+---
+
+## Phase 3: Graph ML Pipeline
+
+Builds a complete binary node-classification pipeline predicting whether a customer is associated with coordinated promotional/referral abuse.
+
+### Running ML Pipeline
+
+#### 1. Train GBDT Baseline and PyG GraphSAGE
+Runs temporal leakage tests, extracts features, trains both models, performs validation threshold optimization search, and saves model parameters:
+```bash
+python -m app.ml.train --epochs 50 --hidden-dim 64 --lr 0.005
+```
+
+#### 2. Evaluate Models
+Computes performance metrics (Precision, Recall, F1, PR-AUC, ROC-AUC), counts false positives/negatives, applies configured business costs, and outputs a comparative report:
+```bash
+python -m app.ml.evaluate
+```
+
+### Save Artifacts
+All models and metrics are saved to `backend/artifacts/`:
+- `baseline_model.joblib`: GBDT baseline parameters
+- `gnn_model.pt`: GraphSAGE state dictionary
+- `training_config.json`: Hyperparameters and optimal operating thresholds
+- `predictions.csv`: Model probabilities on validation and test sets
+- `metrics.json`: Standardized metric outputs
+

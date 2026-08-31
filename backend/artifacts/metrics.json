@@ -1,0 +1,35 @@
+{
+    "tabular_baseline": {
+        "precision": 0.4081911262798635,
+        "recall": 0.8846153846153846,
+        "f1": 0.5586174684726763,
+        "pr_auc": 0.7944703684945947,
+        "roc_auc": 0.9598542852916933,
+        "false_positives": 867,
+        "false_negatives": 78,
+        "false_positive_rate": 0.1267358573307996,
+        "fp_cost": 867000.0,
+        "fn_cost": 780000.0,
+        "total_cost": 1647000.0
+    },
+    "graph_sage": {
+        "precision": 0.6074856046065259,
+        "recall": 0.9363905325443787,
+        "f1": 0.7369033760186263,
+        "pr_auc": 0.9337257373981704,
+        "roc_auc": 0.9882651503422194,
+        "false_positives": 409,
+        "false_negatives": 43,
+        "false_positive_rate": 0.0597865809092238,
+        "fp_cost": 409000.0,
+        "fn_cost": 430000.0,
+        "total_cost": 839000.0
+    },
+    "improvements": {
+        "f1": 0.17828590754594997,
+        "pr_auc": 0.1392553689035757,
+        "recall": 0.05177514792899407,
+        "precision": 0.19929447832666242,
+        "cost_saving": 808000.0
+    }
+}
