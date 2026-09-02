@@ -183,19 +183,27 @@ def get_risk_queue(
 def get_customer_risk(customer_id: str):
     """Returns basic risk score and review status."""
     scorer = get_scorer()
+    if customer_id not in scorer.predictions:
+        raise HTTPException(status_code=404, detail=f"Customer '{customer_id}' not found.")
     return scorer.get_risk_score(customer_id)
 
 @router.get("/risk/customers/{customer_id}/investigation")
 def get_customer_investigation(customer_id: str):
     """Returns full Phase 4 structured evidence package."""
+    scorer = get_scorer()
+    if customer_id not in scorer.predictions:
+        raise HTTPException(status_code=404, detail=f"Customer '{customer_id}' not found.")
     try:
         return investigate_customer(customer_id)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Customer investigation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Customer investigation failed: {str(e)}")
 
 @router.get("/risk/customers/{customer_id}/explanation")
 def get_customer_explanation(customer_id: str):
     """Returns Phase 5 structured AI explanation with fallback support."""
+    scorer = get_scorer()
+    if customer_id not in scorer.predictions:
+        raise HTTPException(status_code=404, detail=f"Customer '{customer_id}' not found.")
     try:
         pkg = investigate_customer(customer_id)
         return explain_risk(pkg)
@@ -208,10 +216,13 @@ def get_customer_graph(customer_id: str):
     Returns a bounded, multi-signal prioritized React Flow graph representation.
     Displays up to 25 top connections and reports total neighborhood size.
     """
+    scorer = get_scorer()
+    if customer_id not in scorer.predictions:
+        raise HTTPException(status_code=404, detail=f"Customer '{customer_id}' not found.")
     try:
         pkg = investigate_customer(customer_id)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Customer not found: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Graph assembly failed: {str(e)}")
         
     nodes = []
     edges = []
