@@ -62,7 +62,7 @@ export const AIExplanationCard: React.FC<AIExplanationCardProps> = ({
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-white">{explanation.headline}</h3>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 font-medium">
-                Gemini 2.5 Flash
+                Gemini 3.5 Flash-Lite
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">Evidence-grounded natural language synthesis</p>

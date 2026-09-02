@@ -15,7 +15,7 @@ MAX_RETRIES = 3
 RETRY_DELAY = 1.0
 
 def sanitize_evidence_package(pkg: dict) -> dict:
-    """Removes all ground-truth fields and internal split indicators to prevent target leakage."""
+    """Removes all ground-truth fields and caps large list lengths for high-speed prompt processing."""
     sanitized = json.loads(json.dumps(pkg)) # Deep clone
     
     # Static forbidden keys to delete recursively
@@ -25,7 +25,9 @@ def sanitize_evidence_package(pkg: dict) -> dict:
         if isinstance(d, dict):
             return {k: _sanitize(v) for k, v in d.items() if k not in forbidden_keys}
         elif isinstance(d, list):
-            return [_sanitize(item) for item in d]
+            # Cap large arrays (e.g. dozens of transaction or customer IDs) to top 10 for prompt efficiency
+            capped = d[:10] if len(d) > 10 else d
+            return [_sanitize(item) for item in capped]
         return d
         
     return _sanitize(sanitized)
