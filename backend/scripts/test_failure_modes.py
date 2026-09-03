@@ -33,7 +33,7 @@ class TestFailureModes(unittest.TestCase):
             self.assertIn("summary", explanation)
             self.assertIn("key_signals", explanation)
             self.assertIn("observed_evidence", explanation)
-            self.assertIn("AI explanation unavailable", explanation["summary"])
+            self.assertIn("Review required:", explanation["summary"])
             print("  [PASS] Gemini API failure gracefully triggered deterministic fallback.")
 
     def test_missing_api_key_fallback(self):

@@ -26,14 +26,19 @@ interface EvidenceTimelineProps {
 export const EvidenceTimeline: React.FC<EvidenceTimelineProps> = ({ clusters = [] }) => {
   if (!clusters || clusters.length === 0) {
     return (
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-4 h-4 text-slate-400" />
-          <h3 className="text-sm font-bold text-white">Temporal Coordination Timeline</h3>
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="p-2 bg-slate-800 rounded-xl text-slate-400">
+            <Clock className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white tracking-tight">Temporal Coordination Timeline</h3>
+            <p className="text-xs text-slate-400">Transaction timestamp correlation analysis</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-lg text-emerald-400 text-xs">
+        <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs leading-relaxed">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-          <span>No rapid transaction clustering detected. Activity occurs over natural, spaced intervals.</span>
+          <span>No rapid transaction clustering detected. Activity occurs over natural, organic intervals with no coordinated bursts.</span>
         </div>
       </div>
     );
@@ -45,27 +50,27 @@ export const EvidenceTimeline: React.FC<EvidenceTimelineProps> = ({ clusters = [
   const txList = tightest.transactions || [];
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-rose-500/10 rounded-lg text-rose-400 border border-rose-500/20">
+    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20">
             <Clock className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Temporal Coordination Timeline</h3>
-            <p className="text-xs text-slate-400">
-              Rapid transaction bursts across connected accounts within {windowSec}s window
+            <h3 className="text-sm font-bold text-white tracking-tight">Temporal Coordination Timeline</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Rapid transaction bursts across connected accounts within &lt; {windowSec}s window
             </p>
           </div>
         </div>
-        <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/30 rounded-full text-xs font-bold text-rose-400">
+        <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/30 rounded-full text-xs font-bold text-rose-300 font-mono">
           {tightest.total_amount != null 
-            ? `INR ${tightest.total_amount.toFixed(2)} Across ${tightest.customer_count ?? 0} Accounts` 
+            ? `₹${tightest.total_amount.toFixed(2)} Across ${tightest.customer_count ?? 0} Accounts` 
             : `${tightest.transaction_count ?? txList.length} Transactions Across ${tightest.customer_count ?? 0} Accounts`}
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         {txList.slice(0, 8).map((tx, idx) => {
           const cId = tx.customer_id || tx.connected_customer || 'Connected Account';
           const txId = tx.transaction_id || tx.target_tx_id || `TX_${idx + 1}`;
@@ -74,7 +79,7 @@ export const EvidenceTimeline: React.FC<EvidenceTimelineProps> = ({ clusters = [
           return (
             <div
               key={idx}
-              className="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800/80 rounded-lg text-xs hover:border-slate-700 transition-all"
+              className="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-xs hover:border-slate-700 transition-all"
             >
               <div className="flex items-center gap-3">
                 <span className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center font-mono text-[10px] text-slate-400 font-bold">
@@ -87,7 +92,7 @@ export const EvidenceTimeline: React.FC<EvidenceTimelineProps> = ({ clusters = [
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-800 text-[10px] text-rose-300 font-mono">
+                <span className="px-2 py-0.5 rounded-md bg-rose-950/80 border border-rose-800/80 text-[10px] text-rose-300 font-mono font-medium">
                   {tx.time_diff != null ? `+${tx.time_diff}s offset` : `≤ ${windowSec}s window`}
                 </span>
               </div>
@@ -95,7 +100,7 @@ export const EvidenceTimeline: React.FC<EvidenceTimelineProps> = ({ clusters = [
               <div className="text-right">
                 <div className="font-mono text-indigo-400 font-bold">{cId}</div>
                 {tx.other_tx_amount != null && (
-                  <div className="text-[11px] text-slate-400">INR {tx.other_tx_amount.toFixed(2)}</div>
+                  <div className="text-[11px] text-slate-400 font-mono">₹{tx.other_tx_amount.toFixed(2)}</div>
                 )}
               </div>
             </div>

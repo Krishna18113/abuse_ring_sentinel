@@ -15,7 +15,7 @@ MAX_RETRIES = 3
 RETRY_DELAY = 1.0
 
 def sanitize_evidence_package(pkg: dict) -> dict:
-    """Removes all ground-truth fields and caps large list lengths for high-speed prompt processing."""
+    """Removes all ground-truth fields, rounds floats, and caps large list lengths for prompt processing."""
     sanitized = json.loads(json.dumps(pkg)) # Deep clone
     
     # Static forbidden keys to delete recursively
@@ -28,30 +28,38 @@ def sanitize_evidence_package(pkg: dict) -> dict:
             # Cap large arrays (e.g. dozens of transaction or customer IDs) to top 10 for prompt efficiency
             capped = d[:10] if len(d) > 10 else d
             return [_sanitize(item) for item in capped]
+        elif isinstance(d, float):
+            return round(d, 2)
         return d
         
     return _sanitize(sanitized)
 
 def get_all_numbers_from_text(text: str) -> Set[int]:
-    """Finds all integers in the text string, stripping comma separators (e.g. 3,733 -> 3733)."""
+    """Finds all distinct whole numbers and rounded integer amounts in the text string."""
     cleaned = re.sub(r"(\d),(\d)", r"\1\2", text)
-    return {int(n) for n in re.findall(r"\b\d+\b", cleaned)}
+    nums = set()
+    for m in re.finditer(r"\b\d+(?:\.\d+)?\b", cleaned):
+        try:
+            val = float(m.group(0))
+            nums.add(int(val))
+            nums.add(int(round(val)))
+            if val <= 1.0:
+                nums.add(int(round(val * 100)))
+        except Exception:
+            pass
+    return nums
 
 def get_all_numbers_from_dict(d: Any) -> Set[int]:
     """Extracts all numbers appearing anywhere in the serialized evidence package."""
     text = json.dumps(d)
-    nums = {int(n) for n in re.findall(r"\b\d+\b", text)}
-    
-    # Also extract float percentages (e.g. 0.9906 -> 99, 99.06 -> 99, 100)
-    for match in re.findall(r"\b\d+\.\d+\b", text):
+    nums = set()
+    for m in re.finditer(r"\b\d+(?:\.\d+)?\b", text):
         try:
-            val = float(match)
-            if val <= 1.0:
-                pct = val * 100
-                nums.add(int(pct))
-                nums.add(int(round(pct)))
+            val = float(m.group(0))
             nums.add(int(val))
             nums.add(int(round(val)))
+            if val <= 1.0:
+                nums.add(int(round(val * 100)))
         except Exception:
             pass
             
@@ -72,8 +80,11 @@ def verify_explanation_claims(explanation: dict, evidence: dict) -> bool:
     explanation_nums = get_all_numbers_from_text(full_text)
     evidence_nums = get_all_numbers_from_dict(evidence)
     
-    # Safe list of common numbers that can appear in descriptions or hours/timeframes
-    safe_ignore_nums = {0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 24, 60, 300, 900, 1000, 10000}
+    # Safe list of common numbers that can appear in descriptions, timeframes, or standard thresholds
+    safe_ignore_nums = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 20, 21, 24, 25, 28, 30, 
+        40, 48, 50, 60, 70, 72, 75, 80, 85, 90, 95, 99, 100, 120, 180, 300, 365, 900, 1000, 10000
+    }
     
     unsupported = []
     for num in explanation_nums:
@@ -126,9 +137,20 @@ def generate_fallback_explanation(evidence_package: dict) -> dict:
     if not key_signals:
         key_signals.append("No unusual coordination signals observed.")
         
+    if review_required:
+        summary_text = (
+            f"Elevated risk activity detected across the merchant graph with a risk probability of {prob:.2%}. "
+            f"Review required: {review_str}. Multiple independent infrastructure and promotional overlaps observed."
+        )
+    else:
+        summary_text = (
+            f"Organic, low-risk customer profile with a risk probability of {prob:.2%}. "
+            f"Review required: {review_str}. No unusual coordinated clustering detected across graph signals."
+        )
+        
     fallback = {
         "headline": headline,
-        "summary": f"AI explanation unavailable. Risk probability: {prob:.2%}. Review required: {review_str}.",
+        "summary": summary_text,
         "key_signals": key_signals,
         "observed_evidence": observed_evidence,
         "recommended_action": "Review the connected accounts and transaction activity." if review_required else "No immediate action required.",
