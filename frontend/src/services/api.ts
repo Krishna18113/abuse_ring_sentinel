@@ -105,6 +105,15 @@ export async function validateMerchantPayload(
   return res.json();
 }
 
+export async function fetchAnalysisSession(sessionId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/analysis/sessions/${sessionId}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch session metadata');
+  }
+  return res.json();
+}
+
 export async function analyzeMerchantSession(
   sessionId: string
 ): Promise<import('../types').SessionAnalysisReport> {

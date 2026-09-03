@@ -154,7 +154,7 @@ export const MerchantCustomerInvestigation: React.FC = () => {
       {/* 1. Navigation Breadcrumb */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
-          onClick={() => navigate('/merchant-analysis')}
+          onClick={() => navigate(`/merchant-analysis?session=${sessId}`)}
           className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -76,9 +76,11 @@ def get_analysis_session(session_id: str):
         "filename": session["filename"],
         "file_format": session["file_format"],
         "record_count": session["record_count"],
-        "uploaded_at": session["uploaded_at"]
+        "uploaded_at": session["uploaded_at"],
+        "validation_result": session.get("validation_result")
     }
 
+@router.get("/sessions/{session_id}/analyze", response_model=SessionAnalysisReport)
 @router.post("/sessions/{session_id}/analyze", response_model=SessionAnalysisReport)
 def analyze_session(session_id: str):
     """

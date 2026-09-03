@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { 
   UploadCloud, 
@@ -14,34 +14,38 @@ import {
   Tag, 
   Info, 
   Sparkles, 
-  ArrowRight,
-  Database,
-  RefreshCw,
-  Clock,
-  Layers,
-  Activity,
-  ChevronRight,
-  Check,
-  AlertOctagon,
-  Eye,
-  X
+  ArrowRight, 
+  Database, 
+  RefreshCw, 
+  Clock, 
+  Layers, 
+  Activity, 
+  ChevronRight, 
+  Check, 
+  AlertOctagon, 
+  Eye, 
+  X,
+  RotateCcw
 } from 'lucide-react';
 
 import { 
   fetchSampleDatasets, 
   uploadMerchantDataset, 
   analyzeMerchantSession,
-  investigateSessionCustomer
+  investigateSessionCustomer,
+  fetchAnalysisSession
 } from '../services/api';
 import { 
   DatasetValidationResult, 
   SampleDatasetItem, 
   SessionAnalysisReport,
-  SessionInvestigationResponse,
   SessionCustomerRisk
 } from '../types';
 
 export const MerchantAnalysis: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -59,11 +63,52 @@ export const MerchantAnalysis: React.FC = () => {
     queryFn: fetchSampleDatasets,
   });
 
+  // Restore session from URL or sessionStorage on mount
+  useEffect(() => {
+    const urlSession = searchParams.get('session');
+    const storedSession = sessionStorage.getItem('active_merchant_session_id');
+    const targetSessionId = urlSession || storedSession;
+
+    if (targetSessionId && !analysisReport && !validating && !analyzingGraph) {
+      restoreSession(targetSessionId);
+    }
+  }, [searchParams]);
+
+  const restoreSession = async (sessionId: string) => {
+    setAnalyzingGraph(true);
+    setError(null);
+    try {
+      const sessionMeta = await fetchAnalysisSession(sessionId);
+      if (sessionMeta.validation_result) {
+        setValidationResult(sessionMeta.validation_result);
+      }
+      const report = await analyzeMerchantSession(sessionId);
+      setAnalysisReport(report);
+      sessionStorage.setItem('active_merchant_session_id', sessionId);
+      if (searchParams.get('session') !== sessionId) {
+        setSearchParams({ session: sessionId }, { replace: true });
+      }
+    } catch (err: any) {
+      // Session expired or not found, clear stale ID
+      sessionStorage.removeItem('active_merchant_session_id');
+      setSearchParams({}, { replace: true });
+    } finally {
+      setAnalyzingGraph(false);
+    }
+  };
+
+  const handleResetSession = () => {
+    setSelectedFile(null);
+    setValidationResult(null);
+    setAnalysisReport(null);
+    setError(null);
+    sessionStorage.removeItem('active_merchant_session_id');
+    setSearchParams({}, { replace: true });
+  };
+
   const handleFile = (file: File) => {
     setSelectedFile(file);
     setError(null);
-    setValidationResult(null);
-    setAnalysisReport(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -88,7 +133,6 @@ export const MerchantAnalysis: React.FC = () => {
   const runFullPipeline = async (file: File) => {
     setValidating(true);
     setError(null);
-    setAnalysisReport(null);
 
     try {
       const valRes = await uploadMerchantDataset(file);
@@ -98,6 +142,8 @@ export const MerchantAnalysis: React.FC = () => {
         setAnalyzingGraph(true);
         const report = await analyzeMerchantSession(valRes.session_id);
         setAnalysisReport(report);
+        sessionStorage.setItem('active_merchant_session_id', valRes.session_id);
+        setSearchParams({ session: valRes.session_id }, { replace: true });
       }
     } catch (err: any) {
       setError(err.message || 'Failed to process merchant dataset');
@@ -123,8 +169,6 @@ export const MerchantAnalysis: React.FC = () => {
     setSelectedFile(file);
     await runFullPipeline(file);
   };
-
-  const navigate = useNavigate();
 
   const handleSelectCustomer = (cid: string) => {
     if (!validationResult) return;
@@ -156,6 +200,16 @@ export const MerchantAnalysis: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {(analysisReport || validationResult) && (
+          <button
+            onClick={handleResetSession}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors shadow-sm"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Upload New Batch</span>
+          </button>
+        )}
       </div>
 
       {/* 2. Honest Architectural Boundary Notice */}

@@ -283,7 +283,7 @@ def validate_merchant_dataset(
         "The uploaded merchant records are stored in a standalone session namespace and do NOT alter the production seeded demonstration profiles (C_00003, C_46046)."
     )
 
-    return DatasetValidationResult(
+    validation_result = DatasetValidationResult(
         session_id=session_id,
         filename=filename,
         file_format=file_format,
@@ -296,3 +296,8 @@ def validate_merchant_dataset(
         ready_for_graph_analysis=is_valid,
         architectural_boundary_notes=boundary_notes,
     )
+
+    if is_valid:
+        _SESSION_REGISTRY[session_id]["validation_result"] = validation_result.model_dump()
+
+    return validation_result
