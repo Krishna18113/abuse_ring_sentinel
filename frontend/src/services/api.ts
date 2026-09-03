@@ -65,3 +65,42 @@ export async function fetchDemoCustomers(): Promise<DemoCustomer[]> {
   if (!res.ok) throw new Error('Failed to fetch demo customers');
   return res.json();
 }
+
+export async function fetchSampleDatasets(): Promise<import('../types').SampleDatasetItem[]> {
+  const res = await fetch(`${API_BASE}/analysis/sample-datasets`);
+  if (!res.ok) throw new Error('Failed to fetch sample datasets');
+  return res.json();
+}
+
+export async function uploadMerchantDataset(
+  file: File
+): Promise<import('../types').DatasetValidationResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/analysis/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to upload dataset');
+  }
+  return res.json();
+}
+
+export async function validateMerchantPayload(
+  records: any[],
+  filename: string = 'payload.json'
+): Promise<import('../types').DatasetValidationResult> {
+  const res = await fetch(`${API_BASE}/analysis/validate-payload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename, records }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to validate payload');
+  }
+  return res.json();
+}

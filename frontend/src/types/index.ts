@@ -179,3 +179,42 @@ export interface RiskExplanation {
   recommended_action: string;
   uncertainty: string;
 }
+
+export interface DatasetSummary {
+  customer_count: number;
+  transaction_count: number;
+  unique_devices_count: number;
+  unique_ips_count: number;
+  unique_coupons_count: number;
+  referrals_count: number;
+  total_volume_inr: number;
+}
+
+export interface SchemaAnalysis {
+  detected_fields: string[];
+  missing_optional_fields: string[];
+  unrecognized_fields: string[];
+}
+
+export interface DatasetValidationResult {
+  session_id: string;
+  filename: string;
+  file_format: string;
+  valid: boolean;
+  summary: DatasetSummary;
+  schema_analysis: SchemaAnalysis;
+  errors: string[];
+  warnings: string[];
+  preview_rows: Array<Record<string, any>>;
+  ready_for_graph_analysis: boolean;
+  architectural_boundary_notes: string;
+}
+
+export interface SampleDatasetItem {
+  dataset_id: string;
+  name: string;
+  description: string;
+  file_format: string;
+  record_count: number;
+  content: string;
+}

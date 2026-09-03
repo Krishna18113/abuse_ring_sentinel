@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar';
 import { Dashboard } from './pages/Dashboard';
 import { RiskQueue } from './pages/RiskQueue';
 import { Investigation } from './pages/Investigation';
+import { MerchantAnalysis } from './pages/MerchantAnalysis';
 import { fetchDemoCustomers } from './services/api';
 
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ const AppContent: React.FC = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/risk-queue" element={<RiskQueue />} />
             <Route path="/customers/:customerId" element={<Investigation />} />
+            <Route path="/merchant-analysis" element={<MerchantAnalysis />} />
           </Routes>
         </ErrorBoundary>
       </main>

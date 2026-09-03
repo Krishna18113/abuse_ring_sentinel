@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShieldAlert, LayoutDashboard, ListFilter, Sparkles, Activity } from 'lucide-react';
+import { ShieldAlert, LayoutDashboard, ListFilter, Sparkles, UploadCloud } from 'lucide-react';
 import { DemoCustomer } from '../types';
 
 interface NavbarProps {
@@ -62,6 +62,20 @@ export const Navbar: React.FC<NavbarProps> = ({ demoCustomers = [] }) => {
               >
                 <ListFilter className="w-4 h-4" />
                 <span>Risk Queue</span>
+              </Link>
+              <Link
+                to="/merchant-analysis"
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  isActive('/merchant-analysis') 
+                    ? 'bg-slate-800/90 text-white border border-slate-700 shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <UploadCloud className="w-4 h-4" />
+                <span>Merchant Analysis</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono font-bold">
+                  NEW
+                </span>
               </Link>
             </nav>
           </div>
