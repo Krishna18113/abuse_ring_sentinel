@@ -218,3 +218,62 @@ export interface SampleDatasetItem {
   record_count: number;
   content: string;
 }
+
+export interface SessionCustomerRisk {
+  customer_id: string;
+  risk_probability: number;
+  risk_level: RiskLevel;
+  review_required: boolean;
+  primary_flag_reason: string;
+  transaction_count: number;
+  total_amount: number;
+  shared_device_count: number;
+  shared_ip_count: number;
+  shared_coupon_count: number;
+  multi_signal_connections_count: number;
+  connected_customer_ids: string[];
+  detected_signals: string[];
+}
+
+export interface SessionClusterInfo {
+  cluster_id: string;
+  customer_count: number;
+  risk_level: RiskLevel;
+  customer_ids: string[];
+  shared_devices: string[];
+  shared_ips: string[];
+  shared_coupons: string[];
+  summary: string;
+}
+
+export interface SessionInvestigationResponse {
+  customer_id: string;
+  risk_probability: number;
+  risk_level: RiskLevel;
+  review_required: boolean;
+  primary_reason: string;
+  explanation: {
+    headline: string;
+    summary: string;
+    key_signals: string[];
+    observed_evidence: string[];
+    recommended_action: string;
+  };
+  graph: {
+    nodes: Array<{ id: string; type: string; data: Record<string, any> }>;
+    edges: Array<{ id: string; source: string; target: string; type?: string; label?: string }>;
+    total_connections_count: number;
+    displayed_nodes_count: number;
+  };
+}
+
+export interface SessionAnalysisReport {
+  session_id: string;
+  analyzed_at: string;
+  total_customers: number;
+  high_risk_customers: number;
+  reviews_required: number;
+  detected_clusters: SessionClusterInfo[];
+  customer_risks: SessionCustomerRisk[];
+  boundary_note: string;
+}

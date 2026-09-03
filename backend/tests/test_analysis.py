@@ -121,3 +121,41 @@ def test_seeded_demo_customers_unaffected():
     resp_high = client.get("/api/risk/customers/C_46046")
     assert resp_high.status_code == 200
     assert resp_high.json()["risk_level"] == "HIGH"
+
+def test_session_graph_analysis_promo_ring():
+    """Verify graph analysis detects abuse clusters and high risk in Batch A promo ring."""
+    from app.analysis.samples import SAMPLE_PROMO_RING_CSV
+    files = {"file": ("promo.csv", io.BytesIO(SAMPLE_PROMO_RING_CSV.encode("utf-8")), "text/csv")}
+    upload_resp = client.post("/api/analysis/upload", files=files)
+    session_id = upload_resp.json()["session_id"]
+
+    # Run analysis
+    analysis_resp = client.post(f"/api/analysis/sessions/{session_id}/analyze")
+    assert analysis_resp.status_code == 200
+    report = analysis_resp.json()
+    assert report["total_customers"] == 10
+    assert report["high_risk_customers"] >= 5
+    assert report["reviews_required"] >= 5
+    assert len(report["detected_clusters"]) >= 1
+    assert "D_RING_99" in report["detected_clusters"][0]["shared_devices"]
+
+def test_session_customer_investigation():
+    """Verify inspecting an uploaded customer returns full evidence graph and explanation."""
+    from app.analysis.samples import SAMPLE_PROMO_RING_CSV
+    files = {"file": ("promo.csv", io.BytesIO(SAMPLE_PROMO_RING_CSV.encode("utf-8")), "text/csv")}
+    upload_resp = client.post("/api/analysis/upload", files=files)
+    session_id = upload_resp.json()["session_id"]
+
+    # Run analysis then investigate customer M_1001
+    client.post(f"/api/analysis/sessions/{session_id}/analyze")
+    inv_resp = client.get(f"/api/analysis/sessions/{session_id}/investigate/M_1001")
+    assert inv_resp.status_code == 200
+    inv = inv_resp.json()
+    assert inv["customer_id"] == "M_1001"
+    assert inv["risk_level"] == "HIGH"
+    assert inv["review_required"] is True
+    assert len(inv["graph"]["nodes"]) >= 3
+    assert len(inv["graph"]["edges"]) >= 2
+    assert "explanation" in inv
+    assert "summary" in inv["explanation"]
+

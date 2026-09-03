@@ -104,3 +104,28 @@ export async function validateMerchantPayload(
   }
   return res.json();
 }
+
+export async function analyzeMerchantSession(
+  sessionId: string
+): Promise<import('../types').SessionAnalysisReport> {
+  const res = await fetch(`${API_BASE}/analysis/sessions/${sessionId}/analyze`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to run session graph analysis');
+  }
+  return res.json();
+}
+
+export async function investigateSessionCustomer(
+  sessionId: string,
+  customerId: string
+): Promise<import('../types').SessionInvestigationResponse> {
+  const res = await fetch(`${API_BASE}/analysis/sessions/${sessionId}/investigate/${customerId}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to investigate session customer');
+  }
+  return res.json();
+}

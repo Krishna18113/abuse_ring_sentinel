@@ -52,3 +52,48 @@ class SampleDatasetItem(BaseModel):
     file_format: str
     record_count: int
     content: str
+
+class SessionCustomerRisk(BaseModel):
+    customer_id: str
+    risk_probability: float
+    risk_level: str
+    review_required: bool
+    primary_flag_reason: str
+    transaction_count: int
+    total_amount: float
+    shared_device_count: int
+    shared_ip_count: int
+    shared_coupon_count: int
+    multi_signal_connections_count: int
+    connected_customer_ids: List[str] = []
+    detected_signals: List[str] = []
+
+class SessionClusterInfo(BaseModel):
+    cluster_id: str
+    customer_count: int
+    risk_level: str
+    customer_ids: List[str]
+    shared_devices: List[str] = []
+    shared_ips: List[str] = []
+    shared_coupons: List[str] = []
+    summary: str
+
+class SessionInvestigationResponse(BaseModel):
+    customer_id: str
+    risk_probability: float
+    risk_level: str
+    review_required: bool
+    primary_reason: str
+    explanation: Dict[str, Any]
+    graph: Dict[str, Any]
+
+class SessionAnalysisReport(BaseModel):
+    session_id: str
+    analyzed_at: str
+    total_customers: int
+    high_risk_customers: int
+    reviews_required: int
+    detected_clusters: List[SessionClusterInfo] = []
+    customer_risks: List[SessionCustomerRisk] = []
+    boundary_note: str
+

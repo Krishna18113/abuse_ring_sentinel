@@ -5,6 +5,8 @@ from app.analysis.schemas import (
     DatasetValidationResult,
     ValidatePayloadRequest,
     SampleDatasetItem,
+    SessionAnalysisReport,
+    SessionInvestigationResponse,
 )
 from app.analysis.validator import (
     parse_file_content,
@@ -12,6 +14,7 @@ from app.analysis.validator import (
     get_session_data,
 )
 from app.analysis.samples import get_sample_datasets
+from app.analysis.engine import analyze_session_graph, get_session_customer_investigation
 
 router = APIRouter(prefix="/api/analysis", tags=["merchant-analysis"])
 
@@ -75,3 +78,30 @@ def get_analysis_session(session_id: str):
         "record_count": session["record_count"],
         "uploaded_at": session["uploaded_at"]
     }
+
+@router.post("/sessions/{session_id}/analyze", response_model=SessionAnalysisReport)
+def analyze_session(session_id: str):
+    """
+    Executes graph construction, clustering, and inductive risk scoring
+    on the validated merchant dataset in an isolated session workspace.
+    """
+    try:
+        return analyze_session_graph(session_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Graph analysis failed: {str(e)}")
+
+@router.get("/sessions/{session_id}/investigate/{customer_id}", response_model=SessionInvestigationResponse)
+def investigate_session_customer(session_id: str, customer_id: str):
+    """
+    Returns an interactive evidence graph and explanation for a customer 
+    within the uploaded merchant dataset session.
+    """
+    try:
+        return get_session_customer_investigation(session_id, customer_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Customer investigation failed: {str(e)}")
+
