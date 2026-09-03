@@ -129,3 +129,39 @@ export async function investigateSessionCustomer(
   }
   return res.json();
 }
+
+export async function fetchSessionCustomerInvestigation(
+  sessionId: string,
+  customerId: string
+): Promise<import('../types').CustomerInvestigation> {
+  const res = await fetch(`${API_BASE}/analysis/sessions/${sessionId}/customers/${customerId}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch customer investigation');
+  }
+  return res.json();
+}
+
+export async function fetchSessionCustomerGraph(
+  sessionId: string,
+  customerId: string
+): Promise<import('../types').GraphResponse> {
+  const res = await fetch(`${API_BASE}/analysis/sessions/${sessionId}/customers/${customerId}/graph`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch customer graph');
+  }
+  return res.json();
+}
+
+export async function fetchSessionCustomerExplanation(
+  sessionId: string,
+  customerId: string
+): Promise<import('../types').RiskExplanation> {
+  const res = await fetch(`${API_BASE}/analysis/sessions/${sessionId}/customers/${customerId}/explanation`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch customer explanation');
+  }
+  return res.json();
+}

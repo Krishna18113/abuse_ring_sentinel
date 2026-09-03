@@ -159,3 +159,34 @@ def test_session_customer_investigation():
     assert "explanation" in inv
     assert "summary" in inv["explanation"]
 
+def test_session_customer_full_dossier_and_graph():
+    """Verify dedicated full investigation, graph, and explanation endpoints."""
+    from app.analysis.samples import SAMPLE_PROMO_RING_CSV
+    files = {"file": ("promo.csv", io.BytesIO(SAMPLE_PROMO_RING_CSV.encode("utf-8")), "text/csv")}
+    upload_resp = client.post("/api/analysis/upload", files=files)
+    session_id = upload_resp.json()["session_id"]
+    client.post(f"/api/analysis/sessions/{session_id}/analyze")
+
+    # 1. Full Dossier
+    dossier_resp = client.get(f"/api/analysis/sessions/{session_id}/customers/M_1001")
+    assert dossier_resp.status_code == 200
+    dossier = dossier_resp.json()
+    assert dossier["customer_id"] == "M_1001"
+    assert dossier["risk"]["risk_level"] == "HIGH"
+    assert len(dossier["signals"]["shared_devices"]) >= 1
+
+    # 2. Graph Response
+    graph_resp = client.get(f"/api/analysis/sessions/{session_id}/customers/M_1001/graph")
+    assert graph_resp.status_code == 200
+    graph = graph_resp.json()
+    assert len(graph["nodes"]) >= 3
+    assert len(graph["edges"]) >= 2
+
+    # 3. Explanation Response
+    exp_resp = client.get(f"/api/analysis/sessions/{session_id}/customers/M_1001/explanation")
+    assert exp_resp.status_code == 200
+    exp = exp_resp.json()
+    assert "headline" in exp
+    assert len(exp["observed_evidence"]) >= 1
+
+

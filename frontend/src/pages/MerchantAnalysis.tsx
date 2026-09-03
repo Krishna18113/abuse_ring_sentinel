@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { 
   UploadCloud, 
@@ -45,12 +46,10 @@ export const MerchantAnalysis: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [validating, setValidating] = useState(false);
   const [analyzingGraph, setAnalyzingGraph] = useState(false);
-  const [investigatingCustomer, setInvestigatingCustomer] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [validationResult, setValidationResult] = useState<DatasetValidationResult | null>(null);
   const [analysisReport, setAnalysisReport] = useState<SessionAnalysisReport | null>(null);
-  const [selectedCustomerInvestigation, setSelectedCustomerInvestigation] = useState<SessionInvestigationResponse | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -65,7 +64,6 @@ export const MerchantAnalysis: React.FC = () => {
     setError(null);
     setValidationResult(null);
     setAnalysisReport(null);
-    setSelectedCustomerInvestigation(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -91,7 +89,6 @@ export const MerchantAnalysis: React.FC = () => {
     setValidating(true);
     setError(null);
     setAnalysisReport(null);
-    setSelectedCustomerInvestigation(null);
 
     try {
       const valRes = await uploadMerchantDataset(file);
@@ -101,13 +98,6 @@ export const MerchantAnalysis: React.FC = () => {
         setAnalyzingGraph(true);
         const report = await analyzeMerchantSession(valRes.session_id);
         setAnalysisReport(report);
-
-        // Auto-select top risky customer for preview if present
-        if (report.customer_risks.length > 0) {
-          const topCust = report.customer_risks[0];
-          const inv = await investigateSessionCustomer(valRes.session_id, topCust.customer_id);
-          setSelectedCustomerInvestigation(inv);
-        }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to process merchant dataset');
@@ -134,17 +124,11 @@ export const MerchantAnalysis: React.FC = () => {
     await runFullPipeline(file);
   };
 
-  const handleSelectCustomer = async (cid: string) => {
+  const navigate = useNavigate();
+
+  const handleSelectCustomer = (cid: string) => {
     if (!validationResult) return;
-    setInvestigatingCustomer(true);
-    try {
-      const inv = await investigateSessionCustomer(validationResult.session_id, cid);
-      setSelectedCustomerInvestigation(inv);
-    } catch (err: any) {
-      setError(err.message || 'Failed to retrieve customer investigation');
-    } finally {
-      setInvestigatingCustomer(false);
-    }
+    navigate(`/merchant-analysis/sessions/${validationResult.session_id}/customers/${cid}`);
   };
 
   return (
@@ -453,14 +437,10 @@ export const MerchantAnalysis: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-800/80">
                   {analysisReport.customer_risks.map((cust) => {
-                    const isSelected = selectedCustomerInvestigation?.customer_id === cust.customer_id;
-
                     return (
                       <tr 
                         key={cust.customer_id}
-                        className={`transition-colors ${
-                          isSelected ? 'bg-indigo-950/40 border-l-2 border-indigo-500' : 'hover:bg-slate-950/60'
-                        }`}
+                        className="hover:bg-slate-950/60 transition-colors"
                       >
                         <td className="py-3 px-4 font-mono font-bold text-indigo-300">
                           {cust.customer_id}
@@ -515,8 +495,7 @@ export const MerchantAnalysis: React.FC = () => {
                         <td className="py-3 px-4 text-right">
                           <button
                             onClick={() => handleSelectCustomer(cust.customer_id)}
-                            disabled={investigatingCustomer}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors shadow-sm"
                           >
                             <span>Inspect Graph</span>
                             <ChevronRight className="w-3.5 h-3.5" />
@@ -530,190 +509,14 @@ export const MerchantAnalysis: React.FC = () => {
             </div>
           </div>
 
-          {/* 6.3 Deep-Dive Customer Investigation Dossier & Visual Evidence Graph */}
-          {selectedCustomerInvestigation && (
-            <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-6 space-y-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
-              
-              {/* Investigation Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center font-mono">
-                    <span className="text-[10px] uppercase text-slate-400 font-bold">SCORE</span>
-                    <span className={`text-base font-extrabold ${
-                      selectedCustomerInvestigation.risk_level === 'HIGH' ? 'text-rose-400' :
-                      selectedCustomerInvestigation.risk_level === 'MEDIUM' ? 'text-amber-400' : 'text-emerald-400'
-                    }`}>
-                      {(selectedCustomerInvestigation.risk_probability * 100).toFixed(1)}%
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-white font-mono">
-                        {selectedCustomerInvestigation.customer_id}
-                      </h3>
-                      <span className={`px-2 py-0.5 rounded-md font-mono text-xs font-bold ${
-                        selectedCustomerInvestigation.risk_level === 'HIGH' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
-                        selectedCustomerInvestigation.risk_level === 'MEDIUM' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                        'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      }`}>
-                        {selectedCustomerInvestigation.risk_level} RISK
-                      </span>
-                      {selectedCustomerInvestigation.review_required ? (
-                        <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold">
-                          Review Required (≥ 60%)
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">
-                          Routine Account
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      {selectedCustomerInvestigation.primary_reason}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setSelectedCustomerInvestigation(null)}
-                  className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Visual Evidence Graph Subgraph Canvas */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Interactive Evidence Network Subgraph
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    {selectedCustomerInvestigation.graph.displayed_nodes_count} Nodes • {selectedCustomerInvestigation.graph.edges.length} Relationships
-                  </span>
-                </div>
-
-                <div className="p-6 bg-slate-950/90 border border-slate-800 rounded-2xl relative min-h-[320px] flex flex-col justify-between overflow-hidden">
-                  
-                  {/* Legend */}
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono pb-4 border-b border-slate-800/80">
-                    <span className="flex items-center gap-1 text-rose-400 font-bold">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Investigated Target
-                    </span>
-                    <span className="flex items-center gap-1 text-sky-400">
-                      <span className="w-2.5 h-2.5 rounded-md bg-sky-500"></span> Hardware Device
-                    </span>
-                    <span className="flex items-center gap-1 text-emerald-400">
-                      <span className="w-2.5 h-2.5 rounded-md bg-emerald-500"></span> Network IP
-                    </span>
-                    <span className="flex items-center gap-1 text-amber-400">
-                      <span className="w-2.5 h-2.5 rounded-md bg-amber-500"></span> Promo Coupon
-                    </span>
-                    <span className="flex items-center gap-1 text-indigo-300">
-                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Connected Peer Accounts
-                    </span>
-                  </div>
-
-                  {/* Hierarchical 3-Tier Visual Layout */}
-                  <div className="py-6 space-y-8 text-center">
-                    
-                    {/* Tier 1: Target Node */}
-                    <div>
-                      <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-950 to-indigo-950 border-2 border-rose-500 text-white font-mono font-bold text-sm shadow-xl shadow-rose-950/50">
-                        <span>🎯 {selectedCustomerInvestigation.customer_id}</span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-rose-500/30 text-rose-200">Target</span>
-                      </div>
-                    </div>
-
-                    {/* Connecting arrows indicator */}
-                    <div className="text-xs text-slate-500 font-mono">
-                      │ connects to shared infrastructure hubs │
-                    </div>
-
-                    {/* Tier 2: Infrastructure Hubs */}
-                    <div className="flex flex-wrap items-center justify-center gap-4">
-                      {selectedCustomerInvestigation.graph.nodes
-                        .filter((n) => n.type !== 'target' && n.type !== 'customer')
-                        .map((hub) => (
-                          <div
-                            key={hub.id}
-                            className={`px-4 py-2 rounded-xl font-mono text-xs font-bold border shadow-md ${
-                              hub.type === 'device' 
-                                ? 'bg-sky-950/70 border-sky-500/60 text-sky-300' 
-                                : hub.type === 'ip' 
-                                ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-300' 
-                                : 'bg-amber-950/70 border-amber-500/60 text-amber-300'
-                            }`}
-                          >
-                            {hub.type === 'device' ? '📱 ' : hub.type === 'ip' ? '🌐 ' : '🎟️ '}
-                            {hub.id}
-                          </div>
-                        ))}
-                    </div>
-
-                    {/* Connecting arrows indicator */}
-                    <div className="text-xs text-slate-500 font-mono">
-                      │ shared by connected peer accounts │
-                    </div>
-
-                    {/* Tier 3: Connected Customers */}
-                    <div className="flex flex-wrap items-center justify-center gap-2.5">
-                      {selectedCustomerInvestigation.graph.nodes
-                        .filter((n) => n.type === 'customer')
-                        .map((peer) => (
-                          <div
-                            key={peer.id}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-indigo-500/40 font-mono text-xs text-indigo-300 flex items-center gap-1.5 shadow-sm"
-                          >
-                            <span className="font-bold">{peer.id}</span>
-                            {peer.data.signal_count >= 2 && (
-                              <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">
-                                {peer.data.signal_count}x Signals
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                    </div>
-
-                  </div>
-
-                  <div className="text-[11px] text-slate-500 font-mono text-center pt-2 border-t border-slate-900">
-                    Deterministic graph topology extracted from session batch relationships.
-                  </div>
-                </div>
-              </div>
-
-              {/* Evidence-Grounded Narrative Dossier */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">
-                    Observable Evidence Details
-                  </div>
-                  <ul className="space-y-1.5 pl-5 list-disc text-xs text-slate-300">
-                    {selectedCustomerInvestigation.explanation.observed_evidence.map((ev, i) => (
-                      <li key={i}>{ev}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">
-                    Recommended Operational Action
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {selectedCustomerInvestigation.explanation.recommended_action}
-                  </p>
-                  <div className="flex items-center gap-2 pt-2">
-                    <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-mono text-[11px]">
-                      Session Analysis Status: Complete
-                    </span>
-                  </div>
-                </div>
-              </div>
-
+          {/* Tip & Guidance */}
+          <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              <span>Click <strong>"Inspect Graph →"</strong> on any account to open its full investigation dossier and interactive evidence graph.</span>
             </div>
-          )}
+            <span className="font-mono text-slate-500 text-[11px]">{analysisReport.customer_risks.length} Profiles Indexed</span>
+          </div>
 
         </div>
       )}

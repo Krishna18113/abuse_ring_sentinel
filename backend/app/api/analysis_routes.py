@@ -105,3 +105,44 @@ def investigate_session_customer(session_id: str, customer_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Customer investigation failed: {str(e)}")
 
+@router.get("/sessions/{session_id}/customers/{customer_id}")
+def get_session_customer_dossier(session_id: str, customer_id: str):
+    """
+    Returns a complete customer risk dossier matching /api/risk/customers/{customer_id}
+    for rendering the complete Investigation page for an uploaded batch customer.
+    """
+    try:
+        from app.analysis.engine import get_session_customer_full_dossier
+        return get_session_customer_full_dossier(session_id, customer_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Dossier retrieval failed: {str(e)}")
+
+@router.get("/sessions/{session_id}/customers/{customer_id}/graph")
+def get_session_customer_graph(session_id: str, customer_id: str):
+    """
+    Returns the NetworkGraph payload for an uploaded batch customer.
+    """
+    try:
+        from app.analysis.engine import get_session_customer_graph_response
+        return get_session_customer_graph_response(session_id, customer_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Graph retrieval failed: {str(e)}")
+
+@router.get("/sessions/{session_id}/customers/{customer_id}/explanation")
+def get_session_customer_explanation(session_id: str, customer_id: str):
+    """
+    Returns the AIExplanationCard payload for an uploaded batch customer.
+    """
+    try:
+        from app.analysis.engine import get_session_customer_explanation_response
+        return get_session_customer_explanation_response(session_id, customer_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Explanation retrieval failed: {str(e)}")
+
+
