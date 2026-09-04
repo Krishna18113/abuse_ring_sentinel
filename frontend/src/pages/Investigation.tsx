@@ -296,6 +296,11 @@ export const Investigation: React.FC = () => {
           explanation={explanation || null}
           loading={explanationLoading || explanationFetching}
           onRefresh={() => refetchExplanation()}
+          risk={risk}
+          signals={signals}
+          strengths={strengths}
+          summary={investigation.summary}
+          multiSignalConnections={multi_signal_connections}
         />
       </section>
 
