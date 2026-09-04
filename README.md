@@ -11,6 +11,9 @@
 [![Test Suite](https://img.shields.io/badge/Pytest_Suite-19%2F19_Passed-success.svg)](#10-testing--verification-status)
 [![Leakage Audit](https://img.shields.io/badge/Anti--Leakage_Audit-0_Leaks_Found-blueviolet.svg)](#8-ground-truth-isolation--anti-leakage-defense)
 
+> 📘 **Official Technical Presentation & System Walkthrough**:  
+> **[View the Idea and walk through (Google Docs) ↗](https://docs.google.com/document/d/1fmLOq4i0qsnMCC7ckq3cZv-VJc5NDzHoL3KrTvfPXWw/edit?tab=t.0)**  
+
 ---
 
 ## ⚡ The 10-Second Executive Summary
