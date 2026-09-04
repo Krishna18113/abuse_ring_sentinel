@@ -48,6 +48,7 @@ backend/data/generated/
 # Environment configurations containing credentials
 .env
 .env.*
+!.env.example
 
 # Frontend build & dependencies
 frontend/node_modules/
