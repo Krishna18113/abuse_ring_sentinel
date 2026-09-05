@@ -5,14 +5,19 @@
 *Developed for the Razorpay AI Buildathon 2026 — Track 02: AI Risk Manager*
 
 [![Buildathon](https://img.shields.io/badge/Razorpay_AI_Buildathon_2026-Track_02:_AI_Risk_Manager-blue.svg)](https://razorpay.com)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Vercel-black.svg?style=flat&logo=vercel)](https://abuse-ring-sentinel-omega.vercel.app/)
+[![Technical Documentation](https://img.shields.io/badge/📘_Technical_Presentation-Google_Docs-4285F4.svg?style=flat)](https://docs.google.com/document/d/1fmLOq4i0qsnMCC7ckq3cZv-VJc5NDzHoL3KrTvfPXWw/edit?tab=t.0)
 [![GNN F1 Score](https://img.shields.io/badge/GraphSAGE_F1-73.7%25_(%2B17.8pp)-emerald.svg)](#6-machine-learning-rigor--benchmarks)
 [![Operational Savings](https://img.shields.io/badge/Operational_Cost_Reduction--49.1%25-green.svg)](#6-machine-learning-rigor--benchmarks)
 [![Sub-Second Traversal](https://img.shields.io/badge/Graph_Investigation-234ms-indigo.svg)](#6-machine-learning-rigor--benchmarks)
 [![Test Suite](https://img.shields.io/badge/Pytest_Suite-19%2F19_Passed-success.svg)](#10-testing--verification-status)
 [![Leakage Audit](https://img.shields.io/badge/Anti--Leakage_Audit-0_Leaks_Found-blueviolet.svg)](#8-ground-truth-isolation--anti-leakage-defense)
 
+> 🚀 **Live Deployed Application**:  
+> **[Open Abuse Ring Sentinel Dashboard (Vercel) ↗](https://abuse-ring-sentinel-omega.vercel.app/)**  
+>
 > 📘 **Official Technical Presentation & System Walkthrough**:  
-> **[View the Idea and walk through (Google Docs) ↗](https://docs.google.com/document/d/1fmLOq4i0qsnMCC7ckq3cZv-VJc5NDzHoL3KrTvfPXWw/edit?tab=t.0)**  
+> **[View the Idea and Walkthrough (Google Docs) ↗](https://docs.google.com/document/d/1fmLOq4i0qsnMCC7ckq3cZv-VJc5NDzHoL3KrTvfPXWw/edit?tab=t.0)**  
 
 ---
 
@@ -269,7 +274,7 @@ Abuse Ring Sentinel enforces strict academic and operational anti-leakage princi
 To evaluate Abuse Ring Sentinel end-to-end:
 
 ### Scenario 1: Evaluating the Seeded Demo Controls
-1. Open **`http://localhost:3000`** in your browser.
+1. Open **[https://abuse-ring-sentinel-omega.vercel.app](https://abuse-ring-sentinel-omega.vercel.app/)** (or `http://localhost:3000` locally) in your browser.
 2. Notice the clean top-level portfolio metrics and the frozen review threshold ($\ge 0.60$).
 3. In the **Quick Evaluation Controls** section:
    * Click **`C_00003 (Low-Risk)`**:
