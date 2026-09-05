@@ -1,8 +1,6 @@
 import os
 import random
 import numpy as np
-import torch
-
 # Base directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(BASE_DIR, "data", "generated")
@@ -17,6 +15,7 @@ FN_COST = float(os.getenv("MERCHANT_FN_COST", "10000.0"))  # Cost of undetected 
 
 def seed_everything(seed=42):
     """Seed all generators to ensure reproducibility."""
+    import torch
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

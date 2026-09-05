@@ -1,12 +1,9 @@
 import os
 import json
 import joblib
-import torch
 import pandas as pd
 
 from app.ml.utils import ARTIFACTS_DIR, DATA_DIR
-from app.ml.gnn import HeteroGraphSAGE
-from app.ml.dataset import build_heterodata_snapshot
 
 class RiskScorer:
     """Production service layer to retrieve GraphSAGE risk probabilities for customers."""
@@ -38,6 +35,10 @@ class RiskScorer:
         if os.path.exists(cached_probs_path):
             self.predictions = joblib.load(cached_probs_path)
         else:
+            import torch
+            from app.ml.gnn import HeteroGraphSAGE
+            from app.ml.dataset import build_heterodata_snapshot
+
             # 2. Build the G_test snapshot graph
             # For evaluation/production, we evaluate customers up to the latest date
             test_cutoff = "2025-12-31 23:59:59"
