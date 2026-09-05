@@ -7,7 +7,13 @@ import {
   DemoCustomer
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+const getApiBase = () => {
+  const envUrl = (import.meta as any).env?.VITE_API_BASE_URL?.trim();
+  if (!envUrl) return '/api';
+  return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`;
+};
+
+const API_BASE = getApiBase();
 
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const res = await fetch(`${API_BASE}/dashboard/summary`);
